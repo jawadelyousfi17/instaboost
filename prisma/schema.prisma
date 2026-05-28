@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum OrderType {
+  FOLLOW
+  LIKE
+  VIEW
+}
+
+enum OrderStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+enum TransactionKind {
+  EARN
+  SPEND
+  TOPUP
+  REFUND
+}
+
+model Profile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  instagramUsername String   @unique
+  coins             Int      @default(100)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  orders       Order[]
+  actions      Action[]
+  transactions Transaction[]
+}
+
+model Order {
+  id                String      @id @default(cuid())
+  profileId         String
+  profile           Profile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  type              OrderType
+  target            String
+  quantityRequested Int
+  quantityDelivered Int         @default(0)
+  costPerAction     Int         @default(10)
+  rewardPerAction   Int         @default(5)
+  status            OrderStatus @default(ACTIVE)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  actions      Action[]
+  transactions Transaction[]
+
+  @@index([status, type])
+  @@index([profileId])
+}
+
+model Action {
+  id           String   @id @default(cuid())
+  orderId      String
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  actorId      String
+  actor        Profile  @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  rewardEarned Int
+  createdAt    DateTime @default(now())
+
+  transactions Transaction[]
+
+  @@unique([orderId, actorId])
+  @@index([actorId])
+}
+
+model Transaction {
+  id        String          @id @default(cuid())
+  profileId String
+  profile   Profile         @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  delta     Int
+  kind      TransactionKind
+  orderId   String?
+  order     Order?          @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  actionId  String?
+  action    Action?         @relation(fields: [actionId], references: [id], onDelete: SetNull)
+  createdAt DateTime        @default(now())
+
+  @@index([profileId, createdAt])
+}
