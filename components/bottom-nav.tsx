@@ -5,12 +5,12 @@ import {
   ChartIncreaseIcon,
   Add01Icon,
   DollarCircleIcon,
-  Clock01Icon,
+  UserCircleIcon,
 } from "@hugeicons/core-free-icons";
 
 import { cn } from "@/lib/utils";
 
-type NavKey = "home" | "earn" | "new" | "topup" | "history";
+type NavKey = "home" | "earn" | "new" | "topup" | "profile";
 
 interface BottomNavProps {
   active: NavKey;
@@ -21,7 +21,7 @@ const items: { key: NavKey; href: string; label: string; icon: typeof Home01Icon
   { key: "earn", href: "/earn", label: "Earn", icon: ChartIncreaseIcon },
   { key: "new", href: "/orders/new", label: "New", icon: Add01Icon },
   { key: "topup", href: "/topup", label: "Top up", icon: DollarCircleIcon },
-  { key: "history", href: "/history", label: "History", icon: Clock01Icon },
+  { key: "profile", href: "/profile", label: "Profile", icon: UserCircleIcon },
 ];
 
 export function BottomNav({ active }: BottomNavProps) {

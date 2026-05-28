@@ -209,7 +209,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         </p>
       </div>
 
-      <BottomNav active="home" />
+      <BottomNav active="profile" />
     </div>
   );
 }

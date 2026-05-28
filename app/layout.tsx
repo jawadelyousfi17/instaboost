@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk } from "next/font/google";
+import NextTopLoader from "nextjs-toploader";
 import "./globals.css";
 
 const grotesk = Space_Grotesk({
@@ -44,6 +45,12 @@ export default function RootLayout({
         className="min-h-full flex flex-col"
         style={{ fontFamily: "var(--font-grotesk)" }}
       >
+        <NextTopLoader
+          color="#18181b"
+          height={3}
+          showSpinner={false}
+          shadow="0 0 8px rgba(24,24,27,0.4)"
+        />
         {children}
       </body>
     </html>
