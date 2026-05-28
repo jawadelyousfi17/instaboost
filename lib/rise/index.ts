@@ -35,6 +35,32 @@ export function priceToCoins(priceCents: number): number {
   return Math.max(0, Math.round((priceCents / 100) * 500));
 }
 
+/**
+ * Turn an internal error into a short, safe, human-readable cause for the 500
+ * response `detail` field. No secrets, no PII — just enough to debug from logs
+ * or Rise's echoed response. Falls back to the raw message, length-capped.
+ */
+export function describeRiseError(e: unknown): string {
+  if (e instanceof Prisma.PrismaClientKnownRequestError) {
+    if (e.code === "P2021") {
+      return "database table `rise_orders` is missing — run `npx prisma db push`";
+    }
+    if (e.code === "P2022") {
+      return "database column missing on `rise_orders` — schema is out of date, run `npx prisma db push`";
+    }
+    if (e.code === "P2003") return "foreign key constraint failed writing the ledger row";
+    return `database error ${e.code}`;
+  }
+  if (e instanceof Prisma.PrismaClientInitializationError) {
+    return "cannot connect to the database (check DATABASE_URL)";
+  }
+  const msg = e instanceof Error ? e.message : String(e);
+  if (msg.includes("SUPABASE_SERVICE_ROLE_KEY")) {
+    return "SUPABASE_SERVICE_ROLE_KEY is not set — required to look up the buyer by email";
+  }
+  return msg.slice(0, 200);
+}
+
 /** Thrown when no Elyosoft user matches the purchase email. Maps to HTTP 404. */
 export class UserNotFoundError extends Error {
   constructor(email: string) {
