@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
+import { getAppUrl } from "@/lib/site";
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
+  const base = getAppUrl();
 
   if (code) {
     const supabase = await createClient();
@@ -13,21 +15,14 @@ export async function GET(request: Request) {
 
     if (!error) {
       const { data } = await supabase.auth.getClaims();
-      const base =
-        request.headers.get("x-forwarded-host")
-          ? `https://${request.headers.get("x-forwarded-host")}`
-          : origin;
-
       if (data?.claims) {
         const profile = await prisma.profile.findUnique({
           where: { userId: data.claims.sub },
         });
-        return NextResponse.redirect(
-          `${base}${profile ? "/" : "/onboarding"}`,
-        );
+        return NextResponse.redirect(`${base}${profile ? "/" : "/onboarding"}`);
       }
     }
   }
 
-  return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
+  return NextResponse.redirect(`${base}/login?error=auth_callback_failed`);
 }
