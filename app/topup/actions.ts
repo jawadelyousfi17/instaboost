@@ -30,6 +30,15 @@ export async function processTopup(formData: FormData) {
   }
   if (!email) redirect("/topup?error=No+email+on+your+account");
 
+  // Backfill the profile email so the Rise webhook can match this buyer by
+  // email in Neon. Cheap and idempotent — only writes when it changed.
+  if (me.email?.toLowerCase() !== email.toLowerCase()) {
+    await prisma.profile.update({
+      where: { id: me.id },
+      data: { email: email.toLowerCase() },
+    });
+  }
+
   // Hand off to the Rise store to pay. Coins are credited by the /upadte-user
   // webhook once Rise confirms the purchase — NOT here.
   redirect(riseProductUrl(price as TopupPrice, email));

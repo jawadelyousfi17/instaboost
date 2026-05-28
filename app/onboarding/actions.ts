@@ -29,15 +29,21 @@ export async function saveInstagramUsername(formData: FormData) {
 
   const username = raw.replace(/^@/, "");
 
+  // Store the account email so the Rise purchase webhook can match buyers by
+  // email purely in Neon (no Supabase lookup needed).
+  const email = typeof data.claims.email === "string" ? data.claims.email.toLowerCase() : null;
+
   try {
     await prisma.profile.upsert({
       where: { userId: data.claims.sub },
       create: {
         userId: data.claims.sub,
+        email,
         instagramUsername: username,
       },
       update: {
         instagramUsername: username,
+        email,
       },
     });
   } catch {

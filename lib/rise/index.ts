@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
-import { createAdminClient } from "@/lib/supabase/admin";
 
 export { verifyRiseSignature, parseSignatureHeader, MAX_SKEW_SECONDS } from "./signature";
 
@@ -55,9 +54,6 @@ export function describeRiseError(e: unknown): string {
     return "cannot connect to the database (check DATABASE_URL)";
   }
   const msg = e instanceof Error ? e.message : String(e);
-  if (msg.includes("SUPABASE_SERVICE_ROLE_KEY")) {
-    return "SUPABASE_SERVICE_ROLE_KEY is not set — required to look up the buyer by email";
-  }
   return msg.slice(0, 200);
 }
 
@@ -70,36 +66,12 @@ export class UserNotFoundError extends Error {
 }
 
 /**
- * Resolve a Supabase auth user id from an email, case-insensitively.
- *
- * Auth lives in Supabase while app data lives in Neon (Prisma), so we cannot
- * join across them — we ask the Supabase admin API. supabase-js has no email
- * filter, so we paginate `listUsers`.
- *
- * NOTE: O(users) per call. Fine at current scale; if the user base grows large,
- * replace with a Postgres function/RPC that indexes on `auth.users.email`.
- */
-async function findAuthUserIdByEmail(email: string): Promise<string | null> {
-  const admin = createAdminClient();
-  const target = email.trim().toLowerCase();
-  const perPage = 1000;
-
-  for (let page = 1; ; page++) {
-    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
-    if (error) throw error;
-
-    const match = data.users.find((u) => u.email?.toLowerCase() === target);
-    if (match) return match.id;
-
-    if (data.users.length < perPage) return null; // last page reached
-  }
-}
-
-/**
  * Deliver a verified Rise purchase. Caller MUST verify the HMAC signature first.
  *
  * 1. Dedupe on `orderId` (no-op if already processed).
- * 2. Resolve the user by email (Supabase auth → Prisma Profile). 404 if absent.
+ * 2. Resolve the buyer by email in Neon (`Profile.email`, case-insensitive).
+ *    404 if absent — the user must have visited the app while logged in at
+ *    least once so their email was stored (onboarding / topup backfill).
  * 3. In one transaction: write the `rise_orders` ledger row, credit coins, and
  *    record a TOPUP transaction.
  *
@@ -111,11 +83,10 @@ export async function handleRiseOrder(p: RisePayload): Promise<void> {
   const existing = await prisma.riseOrder.findUnique({ where: { orderId: p.orderId } });
   if (existing) return;
 
-  // 2. resolve user — auth user, then app profile
-  const userId = await findAuthUserIdByEmail(p.email);
-  if (!userId) throw new UserNotFoundError(p.email);
-
-  const profile = await prisma.profile.findUnique({ where: { userId } });
+  // 2. resolve buyer by email — pure Neon lookup, case-insensitive
+  const profile = await prisma.profile.findFirst({
+    where: { email: { equals: p.email, mode: "insensitive" } },
+  });
   if (!profile) throw new UserNotFoundError(p.email);
 
   const coins = RISE_PRODUCT_MAP[p.productId] ?? priceToCoins(p.price);

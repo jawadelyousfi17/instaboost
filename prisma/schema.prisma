@@ -30,6 +30,7 @@ enum TransactionKind {
 model Profile {
   id                String   @id @default(cuid())
   userId            String   @unique
+  email             String?  @unique
   instagramUsername String   @unique
   coins             Int      @default(100)
   createdAt         DateTime @default(now())
