@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Outfit } from "next/font/google";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowLeft01Icon,
@@ -26,8 +25,6 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
 
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
-
 interface SettingsPageProps {
   searchParams: Promise<{ error?: string; ok?: string }>;
 }
@@ -48,10 +45,9 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
   return (
     <div
-      className={cn("min-h-svh p-5", outfit.variable)}
+      className={"min-h-svh p-5"}
       style={{
         backgroundColor: "#F4F4F5",
-        fontFamily: "var(--font-outfit)",
         paddingBottom: "calc(env(safe-area-inset-bottom) + 140px)",
       }}
     >

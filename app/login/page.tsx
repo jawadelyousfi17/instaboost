@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { Outfit } from "next/font/google";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   InstagramIcon,
@@ -8,9 +7,6 @@ import {
 
 import { signInWithGoogle } from "@/app/auth/actions";
 import { createClient } from "@/lib/supabase/server";
-import { cn } from "@/lib/utils";
-
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
 interface LoginPageProps {
   searchParams: Promise<{ error?: string }>;
@@ -25,11 +21,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <div
-      className={cn(
-        "min-h-svh flex items-center justify-center p-5",
-        outfit.variable,
-      )}
-      style={{ backgroundColor: "#EBEBEB", fontFamily: "var(--font-outfit)" }}
+      className="min-h-svh flex items-center justify-center p-5"
+      style={{ backgroundColor: "#EBEBEB" }}
     >
       <div className="w-full max-w-[340px]">
         <div

@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Outfit } from "next/font/google";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Add01Icon,
@@ -21,8 +20,6 @@ import { BottomNav } from "@/components/bottom-nav";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
-
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
 const ORDER_TYPE_META = {
   FOLLOW: { label: "Followers", icon: UserGroupIcon, accent: "#ec4899" },
@@ -58,10 +55,9 @@ export default async function DashboardPage() {
 
   return (
     <div
-      className={cn("min-h-svh p-5", outfit.variable)}
+      className="min-h-svh p-5"
       style={{
         backgroundColor: "#F4F4F5",
-        fontFamily: "var(--font-outfit)",
         paddingBottom: "calc(env(safe-area-inset-bottom) + 140px)",
       }}
     >
@@ -73,10 +69,10 @@ export default async function DashboardPage() {
               {profile.instagramUsername.charAt(0).toUpperCase()}
             </div>
             <div className="leading-tight">
-              <p className="text-[11px] text-zinc-400 font-medium">
+              <p className="text-[12px] text-zinc-400 font-medium">
                 Welcome back
               </p>
-              <p className="text-[14px] font-semibold text-zinc-900 group-hover:underline">
+              <p className="text-[15px] font-semibold text-zinc-900 group-hover:underline">
                 @{profile.instagramUsername}
               </p>
             </div>
@@ -96,32 +92,32 @@ export default async function DashboardPage() {
 
         {/* ── Balance card ── */}
         <section className="rounded-[28px] bg-zinc-900 p-6 text-white">
-          <div className="flex items-center gap-2 mb-2">
-            <HugeiconsIcon icon={Coins01Icon} size={14} color="#a1a1aa" />
-            <p className="text-[12px] font-medium tracking-wide text-zinc-400">
+          <div className="flex items-center gap-2 mb-2.5">
+            <HugeiconsIcon icon={Coins01Icon} size={15} color="#a1a1aa" />
+            <p className="text-[13px] font-medium tracking-wide text-zinc-400">
               Coin balance
             </p>
           </div>
           <div className="flex items-baseline gap-2">
-            <p className="text-[44px] font-bold leading-none tracking-tight">
+            <p className="text-[48px] font-bold leading-none tracking-tight">
               {formatNum(profile.coins)}
             </p>
-            <p className="text-[14px] font-medium text-zinc-500">coins</p>
+            <p className="text-[15px] font-medium text-zinc-500">coins</p>
           </div>
 
           <div className="grid grid-cols-2 gap-2 mt-6">
             <Link
               href="/topup"
-              className="flex items-center justify-center gap-2 h-11 rounded-full bg-white text-zinc-900 text-[13px] font-semibold transition-opacity active:opacity-80"
+              className="flex items-center justify-center gap-2 h-12 rounded-full bg-white text-zinc-900 text-[14px] font-semibold transition-transform active:scale-[0.97]"
             >
-              <HugeiconsIcon icon={DollarCircleIcon} size={16} color="#18181b" />
+              <HugeiconsIcon icon={DollarCircleIcon} size={17} color="#18181b" />
               Top up
             </Link>
             <Link
               href="/earn"
-              className="flex items-center justify-center gap-2 h-11 rounded-full bg-white/10 text-white text-[13px] font-semibold border border-white/15 transition-opacity active:opacity-80"
+              className="flex items-center justify-center gap-2 h-12 rounded-full bg-white/10 text-white text-[14px] font-semibold border border-white/15 transition-transform active:scale-[0.97]"
             >
-              <HugeiconsIcon icon={ChartIncreaseIcon} size={16} color="white" />
+              <HugeiconsIcon icon={ChartIncreaseIcon} size={17} color="white" />
               Earn
             </Link>
           </div>
