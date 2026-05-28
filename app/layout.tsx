@@ -11,11 +11,19 @@ const grotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: {
-    default: "InstaBoost — Grow your Instagram",
+    default: "InstaBoost · Free Instagram Followers, Likes & Views",
     template: "%s · InstaBoost",
   },
-  description: "Exchange real followers, likes, and views with active users.",
+  description:
+    "Exchange real followers, likes, and views with active Instagram users. 100% free — no credit card required.",
   applicationName: "InstaBoost",
+  keywords: [
+    "instagram followers",
+    "free instagram likes",
+    "instagram views",
+    "instagram growth",
+    "engagement exchange",
+  ],
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -23,6 +31,19 @@ export const metadata: Metadata = {
   },
   formatDetection: { telephone: false },
   manifest: "/manifest.webmanifest",
+  openGraph: {
+    type: "website",
+    title: "InstaBoost · Free Instagram Followers, Likes & Views",
+    description:
+      "Exchange real engagement with active Instagram users. 100% free.",
+    siteName: "InstaBoost",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "InstaBoost · Free Instagram Followers, Likes & Views",
+    description:
+      "Exchange real engagement with active Instagram users. 100% free.",
+  },
 };
 
 export const viewport: Viewport = {

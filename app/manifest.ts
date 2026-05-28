@@ -2,10 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "InstaBoost — Grow your Instagram",
+    name: "InstaBoost · Free Instagram Followers, Likes & Views",
     short_name: "InstaBoost",
     description:
-      "Exchange real followers, likes, and views with active users.",
+      "Exchange real followers, likes, and views with active Instagram users. 100% free.",
     start_url: "/",
     scope: "/",
     display: "standalone",
