@@ -1,11 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { TOPUP_PACKAGES, type TopupPrice } from "./packages";
+import { TOPUP_PACKAGES, riseProductUrl, type TopupPrice } from "./packages";
 
 export async function processTopup(formData: FormData) {
   const supabase = await createClient();
@@ -21,25 +20,17 @@ export async function processTopup(formData: FormData) {
   if (typeof price !== "string" || !(price in TOPUP_PACKAGES)) {
     redirect("/topup?error=Pick+a+package");
   }
-  const coins = TOPUP_PACKAGES[price as TopupPrice];
 
-  // MOCK PAYMENT — in production, redirect to Stripe Checkout here and
-  // perform this credit only after the webhook confirms `checkout.session.completed`.
-  await prisma.$transaction(async (tx) => {
-    await tx.profile.update({
-      where: { id: me.id },
-      data: { coins: { increment: coins } },
-    });
-    await tx.transaction.create({
-      data: {
-        profileId: me.id,
-        delta: coins,
-        kind: "TOPUP",
-      },
-    });
-  });
+  // Email carries the buyer identity to Rise via `?u=`, then back to us in the
+  // /upadte-user webhook so we can match the purchase to this user.
+  let email = typeof data.claims.email === "string" ? data.claims.email : undefined;
+  if (!email) {
+    const { data: u } = await supabase.auth.getUser();
+    email = u.user?.email ?? undefined;
+  }
+  if (!email) redirect("/topup?error=No+email+on+your+account");
 
-  revalidatePath("/");
-  revalidatePath("/topup");
-  redirect("/?topup=success");
+  // Hand off to the Rise store to pay. Coins are credited by the /upadte-user
+  // webhook once Rise confirms the purchase — NOT here.
+  redirect(riseProductUrl(price as TopupPrice, email));
 }

@@ -1,5 +1,9 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Rise purchase webhook
+
+The Rise store delivers paid purchases to this app via a signed POST to `/upadte-user` (handler: `app/upadte-user/route.ts`; delivery logic: `lib/rise/`). Set `RISE_WEBHOOK_SECRET` in the environment to a long random string (`openssl rand -hex 32`) and paste the **same** value into Rise — it is the shared HMAC-SHA256 secret used to verify each request; never commit or log it. On a verified event the webhook resolves the buyer by email (Supabase auth → `Profile`), records an idempotent `rise_orders` ledger row keyed on `orderId`, and credits coins (`priceCents * 5`, matching the topup ratio; override per-product in `RISE_PRODUCT_MAP`). Unknown emails return `404` (no auto-create, since a `Profile` requires a unique `instagramUsername`). Run `npx prisma db push` after pulling to create the `rise_orders` table.
+
 ## Getting Started
 
 First, run the development server:

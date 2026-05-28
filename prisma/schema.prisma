@@ -38,6 +38,7 @@ model Profile {
   orders       Order[]
   actions      Action[]
   transactions Transaction[]
+  riseOrders   RiseOrder[]
 }
 
 model Order {
@@ -89,4 +90,26 @@ model Transaction {
   createdAt DateTime        @default(now())
 
   @@index([profileId, createdAt])
+}
+
+// Idempotent ledger of purchases delivered from the Rise store via the
+// signed /upadte-user webhook. `orderId` is the PRIMARY KEY, so a duplicate
+// Rise delivery hits a unique-constraint violation we catch and treat as a
+// no-op. See lib/rise/index.ts and app/upadte-user/route.ts.
+model RiseOrder {
+  orderId      String   @id @map("order_id")
+  profileId    String?  @map("profile_id")
+  profile      Profile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  email        String
+  priceCents   Int      @map("price_cents")
+  currency     String
+  productId    String   @map("product_id")
+  productName  String   @map("product_name")
+  coinsGranted Int      @map("coins_granted")
+  rawPayload   Json     @map("raw_payload")
+  receivedAt   DateTime @default(now()) @map("received_at")
+
+  @@index([email])
+  @@index([profileId])
+  @@map("rise_orders")
 }
