@@ -32,7 +32,7 @@ export function TopupForm() {
   const pkg = PACKAGES.find((p) => p.price === selected)!;
 
   return (
-    <form action={processTopup} className="flex flex-col gap-5">
+    <form action={processPaygateTopup} className="flex flex-col gap-5">
       <input type="hidden" name="price" value={selected} />
 
       <div className="grid grid-cols-2 gap-2.5">
@@ -117,10 +117,11 @@ export function TopupForm() {
         />
       </section>
 
-      {/* CTAs — two payment methods, same selected package */}
+      {/* CTAs — two payment methods, same selected package.
+          Form default action is PayGate; Rise is the secondary path. */}
       <div className="flex flex-col gap-2.5">
         <PayButton price={pkg.price} />
-        <PaygateButton />
+        <RiseButton />
       </div>
 
       <div className="flex items-center justify-center gap-1.5 text-[11px] text-zinc-400">
@@ -139,6 +140,10 @@ function StarIcon() {
   );
 }
 
+/**
+ * Primary checkout. Uses the form's default action (PayGate.to), sending the
+ * buyer to a hosted card / crypto / Apple Pay / Google Pay / bank checkout.
+ */
 function PayButton({ price }: { price: TopupPrice }) {
   const { pending } = useFormStatus();
   return (
@@ -154,21 +159,20 @@ function PayButton({ price }: { price: TopupPrice }) {
 }
 
 /**
- * Alternative checkout via PayGate.to. Reuses the same form/selected package but
- * submits to the PayGate server action through `formAction`, sending the buyer
- * to a hosted card / crypto / Apple Pay / Google Pay / bank checkout.
+ * Secondary checkout via the Rise store. Overrides the form action through
+ * `formAction` so the same selected package is paid via Rise instead.
  */
-function PaygateButton() {
+function RiseButton() {
   const { pending } = useFormStatus();
   return (
     <button
       type="submit"
-      formAction={processPaygateTopup}
+      formAction={processTopup}
       disabled={pending}
       className="w-full h-[54px] rounded-2xl flex items-center justify-center gap-2 bg-white border border-zinc-200 text-zinc-900 text-[14px] font-semibold transition-opacity active:scale-[0.98] disabled:opacity-60"
     >
       <HugeiconsIcon icon={LockIcon} size={16} color="#18181b" />
-      {pending ? "Processing…" : "Pay with card or crypto"}
+      {pending ? "Processing…" : "Pay with Rise store"}
     </button>
   );
 }
