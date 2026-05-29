@@ -9,7 +9,7 @@ import {
   CheckmarkBadge01Icon,
 } from "@hugeicons/core-free-icons";
 
-import { processTopup } from "./actions";
+import { processTopup, processPaygateTopup } from "./actions";
 import { TOPUP_PACKAGES, type TopupPrice } from "./packages";
 import { cn } from "@/lib/utils";
 
@@ -117,8 +117,11 @@ export function TopupForm() {
         />
       </section>
 
-      {/* CTA */}
-      <PayButton price={pkg.price} />
+      {/* CTAs — two payment methods, same selected package */}
+      <div className="flex flex-col gap-2.5">
+        <PayButton price={pkg.price} />
+        <PaygateButton />
+      </div>
 
       <div className="flex items-center justify-center gap-1.5 text-[11px] text-zinc-400">
         <HugeiconsIcon icon={LockIcon} size={11} color="#a1a1aa" />
@@ -146,6 +149,26 @@ function PayButton({ price }: { price: TopupPrice }) {
     >
       <HugeiconsIcon icon={UserGroupIcon} size={16} color="white" />
       {pending ? "Processing…" : `Pay $${price} now`}
+    </button>
+  );
+}
+
+/**
+ * Alternative checkout via PayGate.to. Reuses the same form/selected package but
+ * submits to the PayGate server action through `formAction`, sending the buyer
+ * to a hosted card / crypto / Apple Pay / Google Pay / bank checkout.
+ */
+function PaygateButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      formAction={processPaygateTopup}
+      disabled={pending}
+      className="w-full h-[54px] rounded-2xl flex items-center justify-center gap-2 bg-white border border-zinc-200 text-zinc-900 text-[14px] font-semibold transition-opacity active:scale-[0.98] disabled:opacity-60"
+    >
+      <HugeiconsIcon icon={LockIcon} size={16} color="#18181b" />
+      {pending ? "Processing…" : "Pay with card or crypto"}
     </button>
   );
 }

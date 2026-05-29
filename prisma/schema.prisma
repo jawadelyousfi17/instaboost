@@ -36,10 +36,11 @@ model Profile {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  orders       Order[]
-  actions      Action[]
-  transactions Transaction[]
-  riseOrders   RiseOrder[]
+  orders        Order[]
+  actions       Action[]
+  transactions  Transaction[]
+  riseOrders    RiseOrder[]
+  paygateOrders PaygateOrder[]
 }
 
 model Order {
@@ -113,4 +114,38 @@ model RiseOrder {
   @@index([email])
   @@index([profileId])
   @@map("rise_orders")
+}
+
+// Idempotent ledger of PayGate.to crypto/card top-ups. One row per checkout,
+// keyed by `id` (a cuid we generate and pass to PayGate as the callback's
+// unique `invoice` param). The callback is UNSIGNED, so coins are credited
+// only after we independently re-verify `status == paid` against PayGate's
+// payment-status endpoint using the server-held `ipnToken`. The `PENDING ->
+// PAID` flip is guarded by a conditional updateMany, making delivery idempotent
+// across duplicate callback hits. See lib/paygate/index.ts and
+// app/paygate/callback/route.ts.
+model PaygateOrder {
+  id               String    @id @default(cuid())
+  profileId        String?   @map("profile_id")
+  profile          Profile?  @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  email            String
+  priceCents       Int       @map("price_cents")
+  currency         String
+  coinsGranted     Int       @map("coins_granted")
+  // `address_in` from wallet.php — already URL-encoded; stored/forwarded verbatim.
+  addressIn        String    @map("address_in")
+  polygonAddressIn String    @map("polygon_address_in")
+  // Secret token from wallet.php used to re-verify payment status server-side.
+  ipnToken         String    @map("ipn_token")
+  status           String    @default("PENDING") // PENDING | PAID
+  valueCoin        String?   @map("value_coin")
+  coin             String?
+  txidOut          String?   @map("txid_out")
+  rawCallback      Json?     @map("raw_callback")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  paidAt           DateTime? @map("paid_at")
+
+  @@index([email])
+  @@index([profileId])
+  @@map("paygate_orders")
 }
