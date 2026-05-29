@@ -11,6 +11,9 @@ import {
 
 import { processTopup, processPaygateTopup } from "./actions";
 import { TOPUP_PACKAGES, type TopupPrice } from "./packages";
+
+// Lowest active PayGate provider minimum ($2). Keep in sync with actions.ts.
+const PAYGATE_MIN_USD = 2;
 import { cn } from "@/lib/utils";
 
 const PACKAGES: {
@@ -118,9 +121,15 @@ export function TopupForm() {
       </section>
 
       {/* CTAs — two payment methods, same selected package.
-          Form default action is PayGate; Rise is the secondary path. */}
+          Form default action is PayGate; Rise is the secondary path.
+          PayGate providers need ≥ $2, so card/crypto is disabled below that. */}
       <div className="flex flex-col gap-2.5">
-        <PayButton price={pkg.price} />
+        <PayButton price={pkg.price} disabled={Number(pkg.price) < PAYGATE_MIN_USD} />
+        {Number(pkg.price) < PAYGATE_MIN_USD ? (
+          <p className="text-center text-[11px] text-zinc-400">
+            Card/crypto needs a $2+ pack — use the Rise store for $1.
+          </p>
+        ) : null}
         <RiseButton />
       </div>
 
@@ -144,12 +153,12 @@ function StarIcon() {
  * Primary checkout. Uses the form's default action (PayGate.to), sending the
  * buyer to a hosted card / crypto / Apple Pay / Google Pay / bank checkout.
  */
-function PayButton({ price }: { price: TopupPrice }) {
+function PayButton({ price, disabled }: { price: TopupPrice; disabled?: boolean }) {
   const { pending } = useFormStatus();
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={pending || disabled}
       className="w-full h-[54px] rounded-2xl flex items-center justify-center gap-2 bg-zinc-900 text-white text-[14px] font-semibold transition-opacity active:scale-[0.98] disabled:opacity-60"
     >
       <HugeiconsIcon icon={UserGroupIcon} size={16} color="white" />

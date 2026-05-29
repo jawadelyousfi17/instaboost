@@ -11,6 +11,10 @@ import {
 } from "@/lib/paygate";
 import { TOPUP_PACKAGES, riseProductUrl, type TopupPrice } from "./packages";
 
+// Lowest active PayGate provider minimum (Stripe/Coinbase = $2). Packages below
+// this can't clear any provider, so reject them before hitting the gateway.
+const PAYGATE_MIN_USD = 2;
+
 export async function processTopup(formData: FormData) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
@@ -94,6 +98,16 @@ export async function processPaygateTopup(formData: FormData) {
 
   const coins = TOPUP_PACKAGES[priceKey];
   const amount = Number(priceKey);
+
+  // Every PayGate provider has a minimum order value; the lowest active one is
+  // $2 (Stripe/Coinbase). Below that, PayGate finds no eligible provider and
+  // the hosted page errors with "...invoice failed / select another provider".
+  // Block it here and steer the buyer to a bigger pack (or the Rise store).
+  if (amount < PAYGATE_MIN_USD) {
+    redirect(
+      `/topup?error=Card%2Fcrypto+needs+a+%24${PAYGATE_MIN_USD}%2B+pack.+Pick+a+bigger+one+or+use+the+Rise+store.`,
+    );
+  }
 
   // Pre-generate the invoice id so the callback URL is unique per checkout.
   const invoiceId = crypto.randomUUID();
